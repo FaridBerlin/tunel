@@ -9,7 +9,7 @@ import { UnrealBloomPass } from "jsm/postprocessing/UnrealBloomPass.js";
 const w = window.innerWidth;
 const h = window.innerHeight;
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x000000, 0.1);
+scene.fog = new THREE.FogExp2(0x000022, 0.1); // Deep blue fog instead of black
 const camera = new THREE.PerspectiveCamera(75, w / h, 0.3, 1000);
 camera.position.z = 5;
 const renderer = new THREE.WebGLRenderer();
@@ -35,7 +35,7 @@ composer.addPass(bloomPass);
 // create a line geometry frome the spline
 const points = spline.getPoints(100);
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
-const material = new THREE.LineBasicMaterial({ color: 0xff00 });
+const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
 const line = new THREE.Line(geometry, material);
 // scene.add(line);
 
@@ -46,7 +46,11 @@ const tubeGeometry = new THREE.TubeGeometry(spline, 222, 0.65, 16, true);
 
 // create edge geometry from the spline 
 const edges = new THREE.EdgesGeometry(tubeGeometry, 0.2);
-const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000});
+const lineMaterial = new THREE.LineBasicMaterial({ 
+  color: 0x00ffaa,
+  transparent: true,
+  opacity: 0.8
+});
 const lineEdges = new THREE.LineSegments(edges, lineMaterial);
 scene.add(lineEdges);
 
@@ -62,12 +66,18 @@ const boxRotationSpeed = 0.05; // Adjust this value for faster or slower rotatio
 const rotatingBoxes = [];
 
 for (let i = 0; i < numBoxes; i += 1) {
+  // Create dynamic color based on position along the tunnel
+  const p = (i / numBoxes + Math.random() * 0.1) % 1;
+  const hue = (p * 0.8 + 0.5) % 1; // Cycle through blue-purple-pink range
+  const boxColor = new THREE.Color().setHSL(hue, 0.9, 0.6);
+  
   const boxMat = new THREE.MeshBasicMaterial({
-    color: 0xffff,
-    wireframe: true
+    color: boxColor,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.8
   });
   const box = new THREE.Mesh(boxGeometry, boxMat);
-  const p = (i / numBoxes + Math.random() * 0.1) % 1;
   const pos = spline.getPointAt(p);
   pos.x += Math.random() - 0.4;
   pos.z += Math.random() - 0.4;
@@ -80,9 +90,13 @@ for (let i = 0; i < numBoxes; i += 1) {
   box.rotation.set(rote.x, rote.y, rote.z);
   rotatingBoxes.push(box); // Store the box for rotation updates
   const edges = new THREE.EdgesGeometry(boxGeometry, 0.2);
-  const color = new THREE.Color().setHSL(1.0 - p, 1, 0.5);
+  
+  // Create complementary color for box edges
+  const edgeHue = (hue + 0.3) % 1; // Offset hue for contrast
+  const edgeColor = new THREE.Color().setHSL(edgeHue, 1.0, 0.7);
+  
   const lineMat = new THREE.LineBasicMaterial({ 
-    color: 0xffff,
+    color: edgeColor,
     transparent: true,
     opacity: 0.9
   });
@@ -110,11 +124,20 @@ function animate(t = 0) {
   composer.render(scene, camera);
   controls.update();
 
-  // Rotate each box
-  rotatingBoxes.forEach((box) => {
+  // Rotate each box and update colors dynamically
+  rotatingBoxes.forEach((box, index) => {
     box.rotation.y += boxRotationSpeed; // Rotate around the Y-axis
     box.rotation.x += boxRotationSpeed * 0.5; // Optional: Add slight X-axis rotation
+    
+    // Add subtle color animation based on time and position
+    const timeOffset = t * 0.001 + index * 0.1;
+    const hue = (Math.sin(timeOffset) * 0.2 + 0.6) % 1;
+    box.material.color.setHSL(hue, 0.9, 0.6);
   });
+  
+  // Animate tunnel edge color
+  const tunnelHue = (Math.sin(t * 0.002) * 0.3 + 0.8) % 1;
+  lineEdges.material.color.setHSL(tunnelHue, 0.8, 0.6);
 }
 animate();
 

@@ -9,8 +9,8 @@ import { UnrealBloomPass } from "jsm/postprocessing/UnrealBloomPass.js";
 const w = window.innerWidth;
 const h = window.innerHeight;
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x000000, 0.3);
-const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+scene.fog = new THREE.FogExp2(0x000000, 0.1);
+const camera = new THREE.PerspectiveCamera(75, w / h, 0.3, 1000);
 camera.position.z = 5;
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(w, h);
@@ -35,7 +35,7 @@ composer.addPass(bloomPass);
 // create a line geometry frome the spline
 const points = spline.getPoints(100);
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
-const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+const material = new THREE.LineBasicMaterial({ color: 0xff00 });
 const line = new THREE.Line(geometry, material);
 // scene.add(line);
 
@@ -46,7 +46,7 @@ const tubeGeometry = new THREE.TubeGeometry(spline, 222, 0.65, 16, true);
 
 // create edge geometry from the spline 
 const edges = new THREE.EdgesGeometry(tubeGeometry, 0.2);
-const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff00});
+const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000});
 const lineEdges = new THREE.LineSegments(edges, lineMaterial);
 scene.add(lineEdges);
 
@@ -93,9 +93,9 @@ for (let i = 0; i < numBoxes; i += 1) {
   scene.add(boxLines);
 }
 
-// create an updete camera function
+// create an update camera function
 function updateCamera(t) {
-  const time = t * 0.01;
+  const time = t * 0.1;
   const looptime = 4 * 1000;
   const p = (time % looptime) / looptime;
   const pos = spline.getPointAt(p); // Corrected access to the path
